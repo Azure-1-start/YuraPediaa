@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yura Pedia - Digital Store</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- RESET & VARIABLES (Tema Executive Slate & Charcoal) --- */
+        :root {
+            --neon-glow: 0 0 5px rgba(255,255,255,0.2),
+             0 0 10px rgba(255,255,255,0.15),
+             0 0 20px rgba(16,185,129,0.25);
+            --bg-dark: #0f172a;         /* Slate gelap (latar belakang) */
+            --bg-light: #1e293b;        /* Slate terang (kartu, navigasi) */
+            --accent: #475569;          /* Abu-abu metalik (aksen) */
+            --accent-green: #10b981;    /* Hijau neon (status/harga) */
+            --text-main: #f1f5f9;       /* Putih pudar (teks utama) */
+            --text-muted: #94a3b8;      /* Abu-abu slate pudar (tagline) */
+            
+            --font-main: 'Poppins', sans-serif;
+            --font-code: 'Share Tech Mono', monospace;
+            --border-radius: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- BACKGROUND PARTICLES --- */
+        #particle-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none; overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4); 
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+        }
+
+        /* --- SIDEBAR STYLES --- */
+        #sidebar-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 998;
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        #sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+        #sidebar {
+            position: fixed; top: 0; left: 0; height: 100%;
+            width: 280px;
+            background: var(--bg-light);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.6);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column;
+            padding: 30px;
+        }
+        #sidebar.active { transform: translateX(0); }
+
+        .sidebar-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
+        }
+        .sidebar-header .brand-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-main);
+    text-shadow: 0 0 5px rgba(255,255,255,0.3),
+                 0 0 10px rgba(16,185,129,0.4);
+}
+
+        .sidebar-item {
+            display: flex; align-items: center; gap: 15px;
+            padding: 15px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px; font-weight: 400; letter-spacing: 0px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            margin-bottom: 5px;
+        }
+        .sidebar-item i { width: 20px; text-align: center; }
+        
+        .sidebar-item:active, .sidebar-item:hover {
+            background: var(--accent);
+            color: var(--text-main);
+        }
+
+        .sidebar-footer { margin-top: auto; font-size: 10px; color: var(--text-muted); }
+
+        /* --- HEADER --- */
+        header {
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+            padding: 20px 25px; 
+            padding-top: 40px; 
+            padding-bottom: 20px; 
+            background: var(--bg-dark);
+            z-index: 50;
+            position: relative;
+        }
+        
+        .brand-title { 
+            font-size: 18px; 
+            font-weight: 700; 
+            letter-spacing: 0.5px; 
+            color: var(--text-main);
+            line-height: 1.1; 
+        }
+        
+        .header-icon { 
+            color: var(--text-main); cursor: pointer; flex-shrink: 0; margin-top: 2px;
+            transition: transform 0.2s;
+        }
+        .header-icon:active { transform: scale(0.9); color: var(--accent); }
+
+        /* --- MAIN CONTENT --- */
+        main { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 0 20px; 
+            padding-bottom: 140px; 
+            scroll-behavior: smooth; 
+            padding-top: 0; 
+            position: relative;
+            z-index: 10;
+        }
+
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- BERANDA PAGE ELEMENTS (RAMAI & DETIL) --- */
+        /* Slideshow Banner (Carousel Sederhana) */
+        .banner-carousel {
+            width: 100%;
+            height: 180px;
+            border-radius: var(--border-radius);
+            margin-top: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .banner-track {
+            display: flex;
+            width: 300%; /* 3 slides */
+            height: 100%;
+            animation: slideShow 15s infinite ease-in-out;
+        }
+        .slide {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 20px;
+        }
+        .slide-overlay {
+            position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-dark) 5%, transparent 100%);
+        }
+        .slide-content { z-index: 5; }
+        .slide-title { font-size: 16px; font-weight: 700; }
+        .slide-desc { font-size: 11px; color: var(--text-muted); }
+
+        @keyframes slideShow {
+            0%, 30% { transform: translateX(0); }
+            35%, 65% { transform: translateX(-33.33%); }
+            70%, 100% { transform: translateX(-66.66%); }
+        }
+
+        .section-title { 
+            font-size: 14px; 
+            font-weight: 600; 
+            color: var(--text-main); 
+            margin-bottom: 15px; 
+            border-left: 3px solid var(--accent); 
+            padding-left: 10px;
+        }
+
+        .quick-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .quick-menu-item {
+            background-color: var(--bg-light);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .quick-menu-item:active { transform: scale(0.95); background-color: var(--accent);}
+        .quick-menu-icon { font-size: 18px; color: var(--text-main); }
+        .quick-menu-label { font-size: 11px; color: var(--text-main); }
+
+        /* --- STOK PAGE ELEMENTS (RAMAI & DETIL KOTA) --- */
+        .filter-container {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px;
+        }
+        .filter-btn {
+            background-color: var(--bg-light); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 18px; border-radius: 20px; font-size: 11px; white-space: nowrap; transition: 0.3s;
+        }
+        .filter-btn.active {
+    background-color: var(--accent);
+    color: var(--text-main);
+    box-shadow: 0 0 8px rgba(16,185,129,0.5);
+}
+
+        .nokos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .product-card {
+            background-color: var(--bg-light);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: var(--border-radius);
+            padding: 20px 15px;
+            text-align: center;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+        
+        .product-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(120deg, transparent, #10b981, transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.product-card:hover::before {
+    opacity: 1;
+}
+
+        .product-card:active { transform: scale(0.95); border-color: var(--accent); }
+        
+        .product-card:hover {
+    box-shadow: 0 0 10px rgba(16,185,129,0.3),
+                0 0 20px rgba(16,185,129,0.2);
+    transform: translateY(-3px);
+}
+
+        .product-icon { font-size: 24px; margin-bottom: 10px; color: var(--accent); }
+        .product-name { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: var(--text-main); }
+        .product-stok { font-size: 10px; color: var(--text-muted); }
+        .product-stok span { color: var(--text-main); font-family: var(--font-code); font-weight: 600;}
+        .product-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    color: #10b981;
+    text-shadow: 0 0 5px rgba(16,185,129,0.6),
+                 0 0 15px rgba(16,185,129,0.4);
+}
+
+        /* --- ADMIN PAGE ELEMENTS (DETIL & BERISI) --- */
+        .info-card {
+            background-color: var(--bg-light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* Foto Profil Senpai (Tetap) */
+        .admin-avatar {
+            width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 35px; color: var(--accent); margin: 0 auto 15px; box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+        .admin-name { font-size: 17px; font-weight: bold; color: var(--text-main); margin-bottom: 5px; }
+        .admin-level { color: var(--text-muted); font-size: 10px; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase;}
+
+        .specs-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;
+        }
+        .spec-item {
+            background-color: var(--bg-dark); padding: 10px; border-radius: 10px;
+            font-size: 11px; display: flex; align-items: center; gap: 8px; color: var(--text-muted);
+        }
+        .spec-item i { color: var(--accent-green); }
+
+        /* --- BOTTOM NAV (Tema Slate) --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(30, 41, 59, 0.98);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex; justify-content: space-around;
+            padding: 12px 0 25px 0; z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .nav-item { 
+            display: flex; flex-direction: column; align-items: center; gap: 6px; 
+            background: none; border: none; cursor: pointer; color: var(--text-muted); width: 60px; 
+            transition: all 0.2s;
+        }
+        .nav-item.active { color: var(--text-main); text-shadow: 0 0 8px rgba(255,255,255,0.3); }
+        .nav-item:active { transform: scale(0.95); }
+        
+        .nav-text { 
+            font-size: 10px; 
+            font-weight: 400; 
+            letter-spacing: 0px; 
+        }
+
+        /* --- TESTIMONI SECTION (Baru di Beranda) --- */
+        .testi-card {
+            background-color: var(--bg-light);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .testi-user { font-weight: 600; color: var(--text-main); margin-bottom: 5px; }
+        
+    </style>
+</head>
+<body>
+
+    <div id="particle-container"></div>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-title">YURA MENU</div>
+            <i class="fas fa-times" onclick="toggleSidebar()" style="color: var(--text-main); cursor: pointer;"></i>
+        </div>
+        <div class="sidebar-content">
+            <a href="https://t.me/YuraPediaID" target="_blank" class="sidebar-item">
+                <i class="fas fa-bullhorn"></i> GRUP PROMOSI
+            </a>
+            <a href="https://t.me/YuraPediaID" target="_blank" class="sidebar-item">
+                <i class="fas fa-info-circle"></i> INFORMATION
+            </a>
+            <a href="https://t.me/YuraPediaID" target="_blank" class="sidebar-item">
+                <i class="fas fa-star"></i> TESTIMONI
+            </a>
+            <a href="https://t.me/YuraPediaID" target="_blank" class="sidebar-item">
+                <i class="fas fa-server"></i> PANEL PTERODACTYL
+            </a>
+            <a href="https://t.me/YuraPediaID" target="_blank" class="sidebar-item">
+                <i class="fas fa-headset"></i> HUBUNGI ADMIN
+            </a>
+        </div>
+        <div class="sidebar-footer">© 2026 YuraPedia - Digital Store</div>
+    </div>
+
+    <header>
+        <i class="fas fa-bars header-icon" onclick="toggleSidebar()"></i>
+        <div class="brand-title">YURA PEDIA</div>
+    </header>
+
+    <main id="main-content">
+
+        <div id="page-beranda" class="page active">
+            
+            <div class="banner-carousel">
+                <div class="banner-track">
+                    <div class="slide" style="background-image: url('https://files.catbox.moe/qrcyy4.jpg');">
+                        <div class="slide-overlay"></div>
+                        <div class="slide-content">
+                            <div class="slide-title">Selamat Datang Di Toko Yura</div>
+                            <div class="slide-desc"></div>
+                        </div>
+                    </div>
+                    <div class="slide" style="background-image: url('https://files.catbox.moe/qrcyy4.jpg'); filter: grayscale(100%);">
+                        <div class="slide-overlay"></div>
+                        <div class="slide-content">
+                            <div class="slide-title">ユラの店へようこそ</div>
+                            <div class="slide-desc"></div>
+                        </div>
+                    </div>
+                    <div class="slide" style="background-image: url('https://files.catbox.moe/qrcyy4.jpg'); opacity: 0.8;">
+                        <div class="slide-overlay"></div>
+                        <div class="slide-content">
+                            <div class="slide-title">Welcome to Yura's store</div>
+                            <div class="slide-desc"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="section-title">LAYANAN TERSEDIA</h2>
+            <div class="quick-menu-grid">
+                <div class="quick-menu-item">
+                    <i class="fab fa-telegram quick-menu-icon"></i>
+                    <div class="quick-menu-label">OTP TELEGRAM</div>
+                </div>
+                <div class="quick-menu-item">
+                    <i class="fab fa-whatsapp quick-menu-icon"></i>
+                    <div class="quick-menu-label">OTP WHATSAPP</div>
+                </div>
+                <div class="quick-menu-item">
+                    <i class="fas fa-server quick-menu-icon"></i>
+                    <div class="quick-menu-label">PANEL PTERO</div>
+                </div>
+                <div class="quick-menu-item">
+                    <i class="fas fa-code quick-menu-icon"></i>
+                    <div class="quick-menu-label">SCRIPT BOT</div>
+                </div>
+            </div>
+
+            <h2 class="section-title">TESTIMONI TERBARU</h2>
+            <div class="testi-card">
+                <div class="testi-user">Sky - ⭐⭐⭐⭐⭐</div>
+                Admin Nya Asik Banget Jir!
+            </div>
+            <div class="testi-card">
+                <div class="testi-user">Zay - ⭐⭐⭐⭐⭐</div>
+                Amanah Terus BossKu
+            </div>
+
+        </div>
+
+        <div id="page-stok" class="page">
+    <h2 class="section-title">DAFTAR LAYANAN</h2>
+    
+    <div class="filter-container">
+        <button class="filter-btn active" onclick="filterStok('all', this)">
+            <i class="fas fa-th-large"></i> Semua
+        </button>
+        <button class="filter-btn" onclick="filterStok('telegram', this)">
+            <i class="fab fa-telegram"></i> Telegram
+        </button>
+        <button class="filter-btn" onclick="filterStok('whatsapp', this)">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+        </button>
+        <button class="filter-btn" onclick="filterStok('panel', this)">
+            <i class="fas fa-server"></i> Panel
+        </button>
+    </div>
+
+    <div class="nokos-grid" id="stok-container">
+        
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 1</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 2</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 3</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 4</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 5</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 6</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 7</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 8</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 9</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="telegram">
+            <i class="fab fa-telegram product-icon"></i>
+            <div class="product-name">🇮🇩 ID 9 9DIGIT</div>
+        </a>
+
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="whatsapp">
+            <i class="fab fa-whatsapp product-icon"></i>
+            <div class="product-name">🇮🇩 ID</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="whatsapp">
+            <i class="fab fa-whatsapp product-icon"></i>
+            <div class="product-name">🇺🇸 USA</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="whatsapp">
+            <i class="fab fa-whatsapp product-icon"></i>
+            <div class="product-name">🇷🇺 RU</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="whatsapp">
+            <i class="fab fa-whatsapp product-icon"></i>
+            <div class="product-name">🇻🇳 VN</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="whatsapp">
+            <i class="fab fa-whatsapp product-icon"></i>
+            <div class="product-name">🇧🇷 BR</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="whatsapp">
+            <i class="fab fa-whatsapp product-icon"></i>
+            <div class="product-name">🇲🇾 MY</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="whatsapp">
+            <i class="fab fa-whatsapp product-icon"></i>
+            <div class="product-name">🇫🇷 FR</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="whatsapp">
+            <i class="fab fa-whatsapp product-icon"></i>
+            <div class="product-name">🇵🇭 PH</div>
+        </a>
+
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 1GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 2GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 3GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 4GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 5GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 6GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 7GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 8GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 9GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-server product-icon"></i>
+            <div class="product-name">RAM 10GB</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-bolt product-icon"></i>
+            <div class="product-name">RAM UNLIMITED</div>
+        </a>
+
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-code product-icon"></i>
+            <div class="product-name">SCRIPT BOT WA</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-code product-icon"></i>
+            <div class="product-name">SCRIPT BOT TELE</div>
+        </a>
+        <a href="https://t.me/YuraPediaID" target="_blank" class="product-card" data-cat="panel">
+            <i class="fas fa-user-cog product-icon"></i>
+            <div class="product-name">ADMIN PANEL l PTERO</div>
+        </a>
+
+    </div>
+</div>
+
+<style>
+/* CSS Tambahan agar Tampilan Tetap Pro */
+.nokos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.product-card {
+    background-color: var(--bg-light);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 30px 10px; /* Padding lebih besar agar elegan */
+    text-align: center;
+    transition: 0.2s ease;
+}
+
+.product-name {
+    font-size: 11px; /* Ukuran teks sedikit lebih kecil agar rapi */
+    font-weight: 500;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.product-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    opacity: 0.9;
+}
+</style>
+
+<script>
+// Logic Filter yang Presisi
+function filterStok(cat, btn) {
+    // 1. Ganti State Tombol
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // 2. Filter Kartu
+    const cards = document.querySelectorAll('#stok-container .product-card');
+    cards.forEach(card => {
+        const category = card.getAttribute('data-cat');
+        if (cat === 'all' || category === cat) {
+            card.style.display = 'block';
+            card.style.animation = 'cardShow 0.3s ease forwards';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+
+        <div id="page-admin" class="page">
+            <h2 class="section-title">AUTHORIZED DEVELOPER INFRASTRUCTURE</h2>
+            <div class="info-card" style="text-align: center;">
+                
+                <div class="admin-avatar">
+                    <img src="https://files.catbox.moe/qrcyy4.jpg" alt="YuraPedia Owner">
+                </div>
+
+                <div class="admin-name">YURA PEDIA</div>
+                <div class="admin-level">AUTHORIZED SYSTEM OWNER</div>
+                
+                <h3 class="section-title" style="align-self: flex-start; margin-bottom: 10px;">YURA PEDIA SPECS</h3>
+                <div class="specs-grid">
+                    <div class="spec-item"><i class="fas fa-infinity"></i> Unlimited OTP</div>
+                    <div class="spec-item"><i class="fas fa-rocket"></i> Fast Node Server</div>
+                    <div class="spec-item"><i class="fas fa-clock"></i> 24/7 Ops Sistem</div>
+                    <div class="spec-item"><i class="fas fa-shield-alt"></i> Trusted & Secure</div>
+                    <div class="spec-item"><i class="fas fa-globe"></i> Global Coverage</div>
+                    <div class="spec-item"><i class="fas fa-cogs"></i> Automation System</div>
+                </div>
+
+                <h3 class="section-title" style="align-self: flex-start; margin-bottom: 10px; margin-top: 20px;">LATEST UPDATE</h3>
+                <div style="text-align: left; font-size: 11px; line-height: 1.8; color: var(--text-muted); padding: 15px; background: var(--bg-dark); border-radius: var(--border-radius); border: 1px solid rgba(255, 255, 255, 0.05); width: 100%;">
+                    > New Node Indonesia Active.<br>
+                    > Fixed OTP WhatsApp Russia.<br>
+                    > Added Script Bot
+                </div>
+                
+                <a href="https://t.me/YuraPediaID" target="_blank" class="btn-order" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fab fa-telegram-plane"></i> HUBUNGI ADMIN
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="showPage('beranda')">
+            <i class="fas fa-home"></i>
+            <span class="nav-text">Beranda</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showPage('stok')">
+            <i class="fas fa-layer-group"></i>
+            <span class="nav-text">Stok</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showPage('admin')">
+            <i class="fas fa-user-shield"></i>
+            <span class="nav-text">Admin</span>
+        </a>
+    </nav>
+
+    <script>
+        // --- 1. SCRIPT NAVIGATION (Ganti Halaman) ---
+        function showPage(pageId) {
+            // Sembunyikan semua halaman
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(p => p.classList.remove('active'));
+
+            // Hapus status active di navigasi
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(n => n.classList.remove('active'));
+
+            // Tampilkan halaman yang dipilih
+            document.getElementById('page-' + pageId).classList.add('active');
+
+            // Set navigasi active (cari item nav ke-berapa)
+            let navIndex = 0;
+            if(pageId === 'stok') navIndex = 1;
+            if(pageId === 'admin') navIndex = 2;
+            navItems[navIndex].classList.add('active');
+        }
+
+        // --- 2. SCRIPT SIDEBAR (Slide-out) ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        }
+
+        // --- 3. SCRIPT Sederhana untuk generate partikel ---
+        const container = document.getElementById('particle-container');
+        const particleCount = 20;
+
+        for (let i = 0; i < particleCount; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'particle';
+            
+            const size = Math.random() * 5 + 2 + 'px';
+            dot.style.width = size;
+            dot.style.height = size;
+            
+            dot.style.left = Math.random() * 100 + 'vw';
+            dot.style.animationDelay = Math.random() * 15 + 's';
+            dot.style.animationDuration = Math.random() * 10 + 10 + 's';
+            
+            container.appendChild(dot);
+        }
+    </script>
+</body>
+</html>
